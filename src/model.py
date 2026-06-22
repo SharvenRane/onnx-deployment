@@ -1,57 +1,55 @@
+"""A small convolutional classifier used as the export target.
+
+The network is intentionally compact so it trains, exports, and runs on CPU
+in a fraction of a second. It accepts single channel square images and
+produces logits over a configurable number of classes.
 """
-Onnx Deployment - Model Architecture
-"""
+
+from __future__ import annotations
+
 import torch
 import torch.nn as nn
-import timm
-from einops import rearrange
 
 
-class OnnxDeployment(nn.Module):
+class SmallCNN(nn.Module):
+    """A two block CNN with a linear classification head.
+
+    Args:
+        in_channels: Number of input image channels.
+        num_classes: Number of output logits.
+        image_size: Height and width of the square input. The two pooling
+            layers each halve the spatial dimensions, so ``image_size`` must
+            be divisible by 4.
     """
-    Main model for onnx deployment.
-    """
 
-    def __init__(self, config):
+    def __init__(
+        self,
+        in_channels: int = 1,
+        num_classes: int = 10,
+        image_size: int = 28,
+    ) -> None:
         super().__init__()
-        self.config = config
-        self.encoder = timm.create_model(
-            config.backbone,
-            pretrained=config.pretrained,
-            features_only=True
+        if image_size % 4 != 0:
+            raise ValueError("image_size must be divisible by 4")
+
+        self.in_channels = in_channels
+        self.num_classes = num_classes
+        self.image_size = image_size
+
+        self.features = nn.Sequential(
+            nn.Conv2d(in_channels, 8, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
+            nn.Conv2d(8, 16, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),
         )
-        self.head = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Flatten(),
-            nn.Linear(self.encoder.feature_info[-1]["num_chs"], config.num_classes)
-        )
 
-    def forward(self, x):
-        features = self.encoder(x)
-        out = self.head(features[-1])
-        return out
+        reduced = image_size // 4
+        self.flat_dim = 16 * reduced * reduced
+        self.classifier = nn.Linear(self.flat_dim, num_classes)
 
-    def extract_features(self, x):
-        features = self.encoder(x)
-        pooled = nn.functional.adaptive_avg_pool2d(features[-1], 1)
-        return pooled.flatten(1)
-
-
-def build_model(config):
-    model = OnnxDeployment(config)
-    if config.get("checkpoint"):
-        state = torch.load(config.checkpoint, map_location="cpu")
-        model.load_state_dict(state["model"])
-    return model
-
-# update 3
-
-# update 6
-
-# update 8
-
-# update 11
-
-# update 13
-
-# update 14
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)
+        x = torch.flatten(x, start_dim=1)
+        return self.classifier(x)
