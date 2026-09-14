@@ -1,0 +1,40 @@
+# Values for kube-prometheus-stack on a single node kind cluster.
+fullnameOverride: kps
+
+# kind binds these control plane components to localhost, so scraping them only produces
+# permanently failing targets and TargetDown alerts.
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
+
+prometheus:
+  prometheusSpec:
+    # pick up ServiceMonitors and rules from every release and namespace, not only this one
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    evaluationInterval: 15s
+    retention: 2d
+    resources:
+      requests: {cpu: 500m, memory: 1Gi}
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests: {cpu: 50m, memory: 64Mi}
+
+grafana:
+  defaultDashboardsTimezone: utc
+  imageRenderer:
+    image:
+      tag: v5.12.3 # the chart default is latest
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: classifier-monitoring
+description: ServiceMonitor and alert rules for the ONNX classifier service
+type: application
+version: 0.1.0

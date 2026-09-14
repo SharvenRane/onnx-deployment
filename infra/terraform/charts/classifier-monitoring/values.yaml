@@ -1,0 +1,6 @@
+selector:
+  app: classifier
+scrapeInterval: 5s
+latencyP95ThresholdSeconds: 0.25
+errorRatioThreshold: 0.05
+alertFor: 2m

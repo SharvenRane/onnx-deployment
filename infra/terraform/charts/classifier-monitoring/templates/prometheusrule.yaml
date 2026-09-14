@@ -1,0 +1,49 @@
+{{- $ns := .Release.Namespace -}}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: classifier
+  namespace: {{ $ns }}
+spec:
+  groups:
+    - name: classifier.recording
+      interval: 15s
+      rules:
+        - record: classifier:request_duration_seconds:p95_1m
+          expr: |
+            histogram_quantile(0.95, sum by (le) (
+              rate(classifier_http_request_duration_seconds_bucket{namespace="{{ $ns }}", handler="/predict"}[1m])))
+        - record: classifier:error_ratio:rate2m
+          expr: |
+            (sum(rate(classifier_http_requests_total{namespace="{{ $ns }}", handler="/predict", status=~"5.."}[2m])) or vector(0))
+            /
+            clamp_min(sum(rate(classifier_http_requests_total{namespace="{{ $ns }}", handler="/predict"}[2m])), 1e-9)
+
+    - name: classifier.alerts
+      interval: 15s
+      rules:
+        - alert: ClassifierHighLatencyP95
+          expr: classifier:request_duration_seconds:p95_1m > {{ .Values.latencyP95ThresholdSeconds }}
+          for: {{ .Values.alertFor }}
+          labels:
+            severity: warning
+          annotations:
+            summary: p95 latency on /predict is above {{ .Values.latencyP95ThresholdSeconds }}s
+            description: The 1 minute p95 of classifier request latency has stayed above {{ .Values.latencyP95ThresholdSeconds }}s for {{ .Values.alertFor }}. Check replicas against the HPA ceiling and CPU per pod.
+
+        - alert: ClassifierHighErrorRate
+          expr: classifier:error_ratio:rate2m > {{ .Values.errorRatioThreshold }}
+          for: {{ .Values.alertFor }}
+          labels:
+            severity: critical
+          annotations:
+            summary: more than {{ .Values.errorRatioThreshold }} of /predict responses are 5xx
+            description: The share of 5xx responses from the classifier has stayed above {{ .Values.errorRatioThreshold }} for {{ .Values.alertFor }}.
+
+        - alert: ClassifierNoReadyReplicas
+          expr: sum(kube_deployment_status_replicas_ready{namespace="{{ $ns }}", deployment="classifier"}) < 1
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: the classifier Deployment has no ready replicas

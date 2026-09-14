@@ -6,3 +6,10 @@ outputs/
 
 # serving model, produced from the tensorrt-optimization benchmark
 models/
+
+# terraform working state and the kubeconfig the kind provider writes
+infra/terraform/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+infra/terraform/kubeconfig

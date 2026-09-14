@@ -15,9 +15,33 @@ jobs:
       - name: Install
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -r requirements.txt fastapi httpx pillow
+          pip install -r requirements.txt fastapi httpx pillow prometheus-client
       - name: Test
         run: python -m pytest tests -q
+
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.16.2
+      - name: Format
+        run: terraform fmt -check -recursive -diff
+      - name: Validate
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate
+      - uses: azure/setup-helm@v5
+        with:
+          version: v4.3.0
+      - name: Lint the monitoring chart
+        run: helm lint charts/classifier-monitoring
+      - name: Dashboard is valid JSON
+        run: python3 -m json.tool ../grafana/classifier-dashboard.json > /dev/null
 
   image:
     # Builds the serving image with a small stand in model and checks the container comes up ready
@@ -42,3 +66,4 @@ jobs:
           for i in $(seq 1 60); do curl -sf localhost:8000/readyz && break; sleep 1; done
           python -c "from PIL import Image; Image.new('L', (512, 512), 128).save('probe.png')"
           curl -sf -X POST --data-binary @probe.png -H 'content-type: image/png' localhost:8000/predict
+          curl -sf localhost:8000/metrics | grep 'classifier_http_requests_total{handler="/predict",method="POST",status="200"} 1.0'
