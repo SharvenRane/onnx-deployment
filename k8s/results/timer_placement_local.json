@@ -1,0 +1,19 @@
+{
+ "setup": "one uvicorn process on the host, ORT_THREADS=1, loadtest.py load, 16 clients, 20 s, p95 from the histogram with Prometheus histogram_quantile interpolation",
+ "inference_on_event_loop": {
+  "client_p95_ms": 512.5548799995157,
+  "client_p50_ms": 485.0547000023653,
+  "server_p95_ms": 49.298076923076934,
+  "server_p50_ms": 37.78846153846154,
+  "rps": 32.51275205138627,
+  "ok": 665
+ },
+ "inference_on_worker_thread": {
+  "client_p95_ms": 542.972600000212,
+  "client_p50_ms": 529.79090000008,
+  "server_p95_ms": 547.4413735343384,
+  "server_p50_ms": 524.4137353433837,
+  "rps": 29.781757816440894,
+  "ok": 611
+ }
+}
