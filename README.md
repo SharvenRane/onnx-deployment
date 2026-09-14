@@ -20,9 +20,14 @@ maximum absolute difference stays below 1e-4.
 
 ```
 serve/
-  app.py        FastAPI inference service with readiness, liveness and stats endpoints
+  app.py        FastAPI inference service with readiness, liveness, stats and Prometheus metrics endpoints
   loadtest.py   in cluster correctness check and closed loop load generator
   Dockerfile    non root serving image with the model baked in
+infra/
+  terraform/                     kind cluster, classifier, HPA, PDB, metrics-server and kube-prometheus-stack in one apply
+  terraform/charts/classifier-monitoring   ServiceMonitor and PrometheusRule for the classifier
+  grafana/classifier-dashboard.json        dashboard loaded by the Grafana sidecar
+  run_monitoring_experiments.py            Prometheus vs load test p95, alert firing, dashboard query export
 k8s/
   deployment.yaml      Deployment, Service and PodDisruptionBudget
   hpa.yaml             HorizontalPodAutoscaler on CPU
@@ -35,7 +40,7 @@ src/
   cli.py      command line entry point
 tests/
   test_parity.py   behavior and parity tests
-  test_serve.py    service probes, predictions, bad input, and the client side resize identity
+  test_serve.py    service probes, predictions, bad input, the client side resize identity, and /metrics
 ```
 
 ## The model
@@ -164,7 +169,142 @@ bash k8s/run_experiments.sh
 
 Measured on a Ryzen 9 9900X under WSL2 (24 vCPUs visible to the kind node), kind v0.34, Kubernetes
 client 1.37, ONNX Runtime 1.30. Every run is one run; the numbers are indicative of shape, not a
-capacity guarantee for other hardware.
+capacity guarantee for other hardware. These results were measured before the service gained
+Prometheus metrics, when inference still ran on the event loop.
+
+## Infrastructure as code and monitoring
+
+`infra/terraform` builds the whole stack from nothing with one `terraform apply`: the kind cluster
+([tehcyx/kind](https://registry.terraform.io/providers/tehcyx/kind) provider), then through the
+`kubernetes` and `helm` providers configured from that cluster's credentials, the classifier
+Deployment, Service, HPA and PodDisruptionBudget, `metrics-server`, and `kube-prometheus-stack`
+(Prometheus, Alertmanager, Grafana with its image renderer, `kube-state-metrics`). Replicas, HPA bounds,
+resources, image, alert thresholds and chart versions are variables.
+
+Two design points worth knowing:
+
+- The ServiceMonitor and PrometheusRule are custom resources, so they ship as a small local Helm chart
+  (`charts/classifier-monitoring`) that depends on the stack release. A `kubernetes_manifest` would
+  need the CRDs to exist at plan time, which breaks a single apply from an empty cluster.
+- The Grafana dashboard is plain JSON in `infra/grafana/`, put into a ConfigMap labelled
+  `grafana_dashboard` that the Grafana sidecar loads. Its panels: request rate by status, 5xx and 4xx
+  share, p50, p95 and p99 request latency from the histogram with the alert threshold drawn in, model
+  inference latency, replicas (desired, ready, HPA max), CPU per pod, and requests in flight.
+
+### Service metrics
+
+`/metrics` exposes `classifier_http_requests_total{handler,method,status}`,
+`classifier_http_request_duration_seconds{handler}` (histogram), `classifier_model_inference_seconds`
+(histogram), `classifier_http_requests_in_flight` and `classifier_model_ready`. Unknown paths share
+the label `handler="other"` so a scanner cannot blow up label cardinality.
+
+**Where the timer starts decides whether the histogram tells the truth.** The first version timed
+requests in middleware while inference still ran on the event loop. A request only reaches the
+middleware once the loop is free, so the queue in front of the single inference slot was invisible.
+Measured on the host with one process and 16 clients for 20 s (`k8s/results/timer_placement_local.json`):
+
+| inference runs on | client p95 | p95 from the histogram |
+|---|---|---|
+| the event loop | 513 ms | 49 ms |
+| one worker thread | 543 ms | 547 ms |
+
+The service now decodes and infers on one worker thread, so capacity is still one inference at a
+time per pod, while the event loop accepts every request immediately and its timer includes the wait.
+
+### Is the monitoring truthful?
+
+For fixed replica counts (HPA pinned with `minReplicas = maxReplicas`), a load Job ran
+`serve/loadtest.py` inside the cluster for 120 s with 16 clients. Afterwards Prometheus computed the
+p95 over exactly that run:
+
+```
+histogram_quantile(0.95, sum by (le) (increase(classifier_http_request_duration_seconds_bucket{namespace="serving", handler="/predict"}[153s])))
+```
+
+| replicas | requests | load test p95 | Prometheus p95 | load test p50 | Prometheus p50 |
+|---|---|---|---|---|---|
+| 1 | 3,434 | 669 ms | 679 ms | 554 ms | 550 ms |
+| 4 | 11,352 | 422 ms | 419 ms | 133 ms | 131 ms |
+| HPA 1 to 6, 48 clients, 300 s | 27,197 | 1,545 ms | 1,554 ms | 371 ms | 363 ms |
+
+Prometheus counted exactly as many `/predict` requests as the load generator completed in all three
+runs, and the p95 agrees within 10 ms. Computing the quantile from exact counter deltas instead of
+`increase()` moves them by at most 5 ms, so window edge extrapolation is not what matters. The
+remaining gap is bucket interpolation plus the connection setup the client sees and the server does
+not. Raw results: `k8s/results/prometheus_vs_loadtest.json` and `alert_firing.json`.
+
+Throughput at 1 and 4 replicas (28.5 and 94.3 rps) is lower than in the earlier table (33.0 and
+105.7 rps). This run also had Prometheus, Grafana and Alertmanager on the same node and a 5 s scrape
+of every pod; the cost of each was not separated.
+
+### The alert fires
+
+`ClassifierHighLatencyP95` fires when the 1 minute p95 of `/predict` stays above 250 ms for 2 minutes
+(`ClassifierHighErrorRate` does the same for a 5xx share above 5%, and `ClassifierNoReadyReplicas`
+covers an empty Deployment). To prove the latency alert, 48 clients ran for 300 s against the
+autoscaled Deployment starting from one pod, while `/api/v1/alerts` and Alertmanager's
+`/api/v2/alerts` were polled about every 11 s. Times are from the start of the load Job's container:
+
+| event | time |
+|---|---|
+| recorded p95 first above 250 ms | 22 s |
+| alert `activeAt` (pending) | 29.5 s |
+| HPA at its ceiling, 6 of 6 replicas ready | by 112 s |
+| first poll showing `firing` in Prometheus and `active` in Alertmanager | 156.5 s |
+| load ends | 308 s |
+| first poll showing the alert inactive | 88 s after the load ended |
+
+Six replicas were not enough for 48 clients: once the scale out had settled, the 1 minute p95 stayed
+between 1.07 s and 1.48 s, so the alert did what it is for, flagging load beyond the HPA ceiling. The
+full poll timeline and the `ALERTS` series at the first firing poll are in `alert_firing.json`. Every
+dashboard query evaluated over the same window with `query_range` is in
+`k8s/results/prometheus_dashboard_queries.json`, and panels rendered headlessly by the Grafana image
+renderer are in `k8s/results/grafana/`:
+
+![dashboard during the alert run](k8s/results/grafana/dashboard.png)
+
+A separate training job started on the host about 30 s into this run, so the absolute latencies of
+the alert run are not a capacity figure. The Prometheus to load test comparison is unaffected since
+both sides saw the same requests.
+
+### Terraform timings
+
+| step | time |
+|---|---|
+| `terraform init` (empty directory, providers downloaded) | 18.3 s |
+| `terraform apply` from empty state, monitoring images in the local docker cache | 152.6 s |
+| `terraform destroy` of the full stack | 25.6 s |
+
+Inside that apply: the kind cluster 33 s, copying nine monitoring images into the node 51 s,
+`metrics-server` 43 s, `kube-prometheus-stack` 58 s (`k8s/results/terraform_timings.json`). The first
+attempt on a machine with nothing cached did not finish: creating the cluster took 14 min 43 s while the
+node image downloaded, and the stack release then hit its 15 minute Helm timeout while its pods were
+still pulling. That is why the release timeout is now 30 minutes and why `local-cache.tfvars`
+exists. A release that times out is left in a failed state that a second apply cannot reuse
+(`cannot re-use a name that is still in use`), so recover with `helm -n monitoring uninstall kps`
+before applying again.
+
+### Reproduce
+
+Run from a Linux shell with docker, kind, kubectl and Terraform 1.9 or newer, test images in
+`/opt/data/k8s/images` (the `data_host_path` variable).
+
+```bash
+docker build -f serve/Dockerfile -t classifier:local .
+cd infra/terraform
+terraform init
+terraform apply -var-file=local-cache.tfvars    # drop the var file to let the node pull everything
+export KUBECONFIG=$PWD/kubeconfig
+cd ../..
+python3 infra/run_monitoring_experiments.py /opt/data/k8s/results
+kubectl -n monitoring port-forward svc/kps-grafana 3000:80    # dashboard "ONNX classifier", user admin
+cd infra/terraform && terraform destroy
+```
+
+Versions: Terraform 1.16.2, tehcyx/kind 0.11.0 (kindest/node v1.35.0), hashicorp/kubernetes 3.2.1,
+hashicorp/helm 3.3.0, `kube-prometheus-stack` 91.2.1 (Prometheus 3.14.0, Grafana 13.2.1), `metrics-server`
+chart 3.14.0, `prometheus-client` 0.26.0. CI runs `terraform fmt -check`, `terraform init -backend=false` followed by
+`terraform validate`, and `helm lint` on the monitoring chart.
 
 ## Tests
 

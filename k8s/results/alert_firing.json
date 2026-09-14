@@ -1,0 +1,455 @@
+{
+ "alert": "ClassifierHighLatencyP95",
+ "threshold_s": 0.25,
+ "for": "2m",
+ "concurrency": 48,
+ "duration_s": 300,
+ "loadtest_started_unix": 1789359523.0,
+ "loadtest_finished_unix": 1789359831.0,
+ "first_breach_unix": 1789359545.0,
+ "first_pending_unix": 1789359556.0800338,
+ "first_firing_seen_unix": 1789359679.4617574,
+ "prometheus_active_at": "2026-09-14T04:19:12.50258518Z",
+ "first_alertmanager_active_unix": 1789359679.4617574,
+ "resolved_seen_unix": 1789359919.4313385,
+ "polls_firing": 15,
+ "alerts_series_at_first_firing_poll": {
+  "status": "success",
+  "data": {
+   "resultType": "vector",
+   "result": [
+    {
+     "metric": {
+      "__name__": "ALERTS",
+      "alertname": "ClassifierHighLatencyP95",
+      "alertstate": "firing",
+      "severity": "warning"
+     },
+     "value": [
+      1789359679,
+      "1"
+     ]
+    }
+   ]
+  }
+ },
+ "p95_comparison": {
+  "run": "prom-alert",
+  "loadtest_started_unix": 1789359523.0,
+  "loadtest_finished_unix": 1789359831.0,
+  "prometheus_window_s": 334,
+  "promql_p95": "histogram_quantile(0.95, sum by (le) (increase(classifier_http_request_duration_seconds_bucket{namespace=\"serving\", handler=\"/predict\"}[334s])))",
+  "loadtest": {
+   "p50_ms": 371.3498780007285,
+   "p95_ms": 1544.5136256001188,
+   "p99_ms": 2054.0381322801118
+  },
+  "prometheus_histogram_quantile": {
+   "p50_ms": 362.9680080824436,
+   "p95_ms": 1554.0664662587365,
+   "p99_ms": 2213.658222201436
+  },
+  "prometheus_exact_bucket_delta": {
+   "p50_ms": 360.21026372059873,
+   "p95_ms": 1549.8791102514494,
+   "p99_ms": 2211.8961864406765
+  },
+  "requests_loadtest_ok": 27197,
+  "requests_loadtest_failed": 0,
+  "requests_counted_by_prometheus": 27197.0,
+  "throughput_rps": 90.33556841747637,
+  "p95_difference_ms": 9.552840658617697
+ },
+ "timeline": [
+  {
+   "t": 1789359523.1332393,
+   "prometheus_state": "inactive",
+   "active_at": null,
+   "alertmanager_state": null,
+   "p95_1m_s": NaN,
+   "ready_replicas": 1.0
+  },
+  {
+   "t": 1789359534.0713046,
+   "prometheus_state": "inactive",
+   "active_at": null,
+   "alertmanager_state": null,
+   "p95_1m_s": NaN,
+   "ready_replicas": 1.0
+  },
+  {
+   "t": 1789359545.0030317,
+   "prometheus_state": "inactive",
+   "active_at": null,
+   "alertmanager_state": null,
+   "p95_1m_s": 2.4542134831460674,
+   "ready_replicas": 1.0
+  },
+  {
+   "t": 1789359556.0800338,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.451498127340824,
+   "ready_replicas": 1.0
+  },
+  {
+   "t": 1789359567.1702752,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.451498127340824,
+   "ready_replicas": 1.0
+  },
+  {
+   "t": 1789359578.277319,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.4386684325842696,
+   "ready_replicas": 2.0
+  },
+  {
+   "t": 1789359589.5187488,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.4043373303370785,
+   "ready_replicas": 2.0
+  },
+  {
+   "t": 1789359600.765319,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.3294228419603864,
+   "ready_replicas": 2.0
+  },
+  {
+   "t": 1789359611.9934225,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 2.3294228419603864,
+   "ready_replicas": 4.0
+  },
+  {
+   "t": 1789359623.3022554,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 1.928749160894661,
+   "ready_replicas": 4.0
+  },
+  {
+   "t": 1789359634.5806262,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 1.6636945628981352,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359645.6496701,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 1.4531318839965752,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359656.9008358,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 1.4531318839965752,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359668.229105,
+   "prometheus_state": "pending",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": null,
+   "p95_1m_s": 1.3125231685629937,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359679.4617574,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.3746214942085726,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359690.8221092,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.3618718592964816,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359702.0441709,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.3618718592964816,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359713.2232685,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.475275157232704,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359724.511563,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.4777406417112302,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359735.7184997,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.3451250000000001,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359747.0046473,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.3451250000000001,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359758.2524946,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.218359375,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359769.41732,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.1815232240437157,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359780.6759155,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.114523498694517,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359791.9126625,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.114523498694517,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359803.2141242,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.0739130434782607,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359814.460599,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.0844090909090902,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359825.7316198,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.1123965723344904,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359836.6601346,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.1123965723344904,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359855.0550961,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.1424924924924922,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359865.8334942,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.129644268774703,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359876.5692658,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 1.1271169914352797,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359887.287253,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 0.9386363636363636,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359898.023758,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": 0.9386363636363636,
+   "ready_replicas": 6.0
+  },
+  {
+   "t": 1789359908.7340086,
+   "prometheus_state": "firing",
+   "active_at": "2026-09-14T04:19:12.50258518Z",
+   "alertmanager_state": "active",
+   "p95_1m_s": NaN,
+   "ready_replicas": 4.0
+  },
+  {
+   "t": 1789359919.4313385,
+   "prometheus_state": "inactive",
+   "active_at": null,
+   "alertmanager_state": null,
+   "p95_1m_s": NaN,
+   "ready_replicas": 4.0
+  }
+ ],
+ "window": [
+  1789359516.9282308,
+  1789359919.4314578
+ ],
+ "rules": {
+  "groups": [
+   {
+    "name": "classifier.alerts",
+    "file": "/etc/prometheus/rules/prometheus-kps-prometheus-rulefiles-0/serving-classifier-46ca594b-c29b-46d8-9905-7cb639f4c0b4.yaml",
+    "rules": [
+     {
+      "state": "inactive",
+      "name": "ClassifierHighLatencyP95",
+      "query": "classifier:request_duration_seconds:p95_1m > 0.25",
+      "duration": 120,
+      "keepFiringFor": 0,
+      "labels": {
+       "severity": "warning"
+      },
+      "annotations": {
+       "description": "The 1 minute p95 of classifier request latency has stayed above 0.25s for 2m. Check replicas against the HPA ceiling and CPU per pod.",
+       "summary": "p95 latency on /predict is above 0.25s"
+      },
+      "alerts": [],
+      "health": "ok",
+      "evaluationTime": 0.000520342,
+      "lastEvaluation": "2026-09-14T04:25:12.504266047Z",
+      "type": "alerting"
+     },
+     {
+      "state": "inactive",
+      "name": "ClassifierHighErrorRate",
+      "query": "classifier:error_ratio:rate2m > 0.05",
+      "duration": 120,
+      "keepFiringFor": 0,
+      "labels": {
+       "severity": "critical"
+      },
+      "annotations": {
+       "description": "The share of 5xx responses from the classifier has stayed above 0.05 for 2m.",
+       "summary": "more than 0.05 of /predict responses are 5xx"
+      },
+      "alerts": [],
+      "health": "ok",
+      "evaluationTime": 0.000122933,
+      "lastEvaluation": "2026-09-14T04:25:12.504797609Z",
+      "type": "alerting"
+     },
+     {
+      "state": "inactive",
+      "name": "ClassifierNoReadyReplicas",
+      "query": "sum(kube_deployment_status_replicas_ready{deployment=\"classifier\",namespace=\"serving\"}) < 1",
+      "duration": 60,
+      "keepFiringFor": 0,
+      "labels": {
+       "severity": "critical"
+      },
+      "annotations": {
+       "summary": "the classifier Deployment has no ready replicas"
+      },
+      "alerts": [],
+      "health": "ok",
+      "evaluationTime": 8.6532e-05,
+      "lastEvaluation": "2026-09-14T04:25:12.504930022Z",
+      "type": "alerting"
+     }
+    ],
+    "interval": 15,
+    "limit": 0,
+    "evaluationTime": 0.000806019,
+    "lastEvaluation": "2026-09-14T04:25:12.504212996Z"
+   },
+   {
+    "name": "classifier.recording",
+    "file": "/etc/prometheus/rules/prometheus-kps-prometheus-rulefiles-0/serving-classifier-46ca594b-c29b-46d8-9905-7cb639f4c0b4.yaml",
+    "rules": [
+     {
+      "name": "classifier:request_duration_seconds:p95_1m",
+      "query": "histogram_quantile(0.95, sum by (le) (rate(classifier_http_request_duration_seconds_bucket{handler=\"/predict\",namespace=\"serving\"}[1m])))",
+      "labels": {},
+      "health": "ok",
+      "evaluationTime": 0.001627728,
+      "lastEvaluation": "2026-09-14T04:25:15.060052115Z",
+      "type": "recording"
+     },
+     {
+      "name": "classifier:error_ratio:rate2m",
+      "query": "(sum(rate(classifier_http_requests_total{handler=\"/predict\",namespace=\"serving\",status=~\"5..\"}[2m])) or vector(0)) / clamp_min(sum(rate(classifier_http_requests_total{handler=\"/predict\",namespace=\"serving\"}[2m])), 0.000000001)",
+      "labels": {},
+      "health": "ok",
+      "evaluationTime": 0.00043176,
+      "lastEvaluation": "2026-09-14T04:25:15.061714504Z",
+      "type": "recording"
+     }
+    ],
+    "interval": 15,
+    "limit": 0,
+    "evaluationTime": 0.00219323,
+    "lastEvaluation": "2026-09-14T04:25:15.059970684Z"
+   }
+  ]
+ }
+}

@@ -1,0 +1,60 @@
+[
+ {
+  "run": "prom-r1",
+  "loadtest_started_unix": 1789359129.0,
+  "loadtest_finished_unix": 1789359257.0,
+  "prometheus_window_s": 153,
+  "promql_p95": "histogram_quantile(0.95, sum by (le) (increase(classifier_http_request_duration_seconds_bucket{namespace=\"serving\", handler=\"/predict\"}[153s])))",
+  "loadtest": {
+   "p50_ms": 553.9294074997088,
+   "p95_ms": 669.3736196500595,
+   "p99_ms": 717.6390774398533
+  },
+  "prometheus_histogram_quantile": {
+   "p50_ms": 549.836642197211,
+   "p95_ms": 679.4456334415894,
+   "p99_ms": 732.6846542361287
+  },
+  "prometheus_exact_bucket_delta": {
+   "p50_ms": 549.8185117967332,
+   "p95_ms": 679.4378194207835,
+   "p99_ms": 732.6666666666664
+  },
+  "requests_loadtest_ok": 3434,
+  "requests_loadtest_failed": 0,
+  "requests_counted_by_prometheus": 3434.0,
+  "throughput_rps": 28.473515541706988,
+  "p95_difference_ms": 10.072013791529912,
+  "replicas": 1,
+  "concurrency": 16
+ },
+ {
+  "run": "prom-r4",
+  "loadtest_started_unix": 1789359314.0,
+  "loadtest_finished_unix": 1789359444.0,
+  "prometheus_window_s": 157,
+  "promql_p95": "histogram_quantile(0.95, sum by (le) (increase(classifier_http_request_duration_seconds_bucket{namespace=\"serving\", handler=\"/predict\"}[157s])))",
+  "loadtest": {
+   "p50_ms": 133.1273465002596,
+   "p95_ms": 422.26021584970096,
+   "p99_ms": 537.4960486500822
+  },
+  "prometheus_histogram_quantile": {
+   "p50_ms": 130.70898339352138,
+   "p95_ms": 418.85673550554856,
+   "p99_ms": 534.8174324192768
+  },
+  "prometheus_exact_bucket_delta": {
+   "p50_ms": 129.7560975609756,
+   "p95_ms": 418.29861111111103,
+   "p99_ms": 535.6752136752135
+  },
+  "requests_loadtest_ok": 11352,
+  "requests_loadtest_failed": 0,
+  "requests_counted_by_prometheus": 11352.0,
+  "throughput_rps": 94.3405429673312,
+  "p95_difference_ms": -3.403480344152399,
+  "replicas": 4,
+  "concurrency": 16
+ }
+]

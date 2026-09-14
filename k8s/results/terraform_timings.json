@@ -1,0 +1,21 @@
+{
+ "terraform_init_s": 18.3,
+ "terraform_apply_s": 152.6,
+ "resource_creation": {
+  "kind_cluster.this": "33s",
+  "kubernetes_namespace_v1.monitoring": "0s",
+  "kubernetes_namespace_v1.serving": "0s",
+  "kubernetes_pod_disruption_budget_v1.classifier": "0s",
+  "kubernetes_config_map_v1.classifier_dashboard": "0s",
+  "kubernetes_service_v1.classifier": "0s",
+  "terraform_data.load_image[0]": "11s",
+  "kubernetes_deployment_v1.classifier": "4s",
+  "kubernetes_horizontal_pod_autoscaler_v2.classifier": "0s",
+  "terraform_data.preload_images[0]": "51s",
+  "helm_release.metrics_server": "43s",
+  "helm_release.kube_prometheus_stack": "58s",
+  "helm_release.classifier_monitoring": "0s"
+ },
+ "terraform_destroy_s": 25.6,
+ "notes": "terraform init and apply from an empty state directory with -var-file=local-cache.tfvars (monitoring images already in the local docker cache), then terraform destroy of the full stack after the monitoring experiments. One run."
+}
