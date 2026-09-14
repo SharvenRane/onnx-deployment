@@ -3,3 +3,6 @@ __pycache__/
 .pytest_cache/
 outputs/
 *.pt
+
+# serving model, produced from the tensorrt-optimization benchmark
+models/

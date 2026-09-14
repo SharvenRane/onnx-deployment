@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt fastapi httpx pillow
+      - name: Test
+        run: python -m pytest tests -q
+
+  image:
+    # Builds the serving image with a small stand in model and checks the container comes up ready
+    # and answers a prediction. The production model is not in the repository.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Export a stand in model at the service input shape
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements.txt pillow
+          mkdir -p models
+          python -m src.cli export --output models/model.onnx --in-channels 3 --num-classes 2 --image-size 224
+      - name: Build
+        run: docker build -f serve/Dockerfile -t classifier:ci .
+      - name: Run and probe
+        run: |
+          docker run -d --name svc -p 8000:8000 classifier:ci
+          for i in $(seq 1 60); do curl -sf localhost:8000/readyz && break; sleep 1; done
+          python -c "from PIL import Image; Image.new('L', (512, 512), 128).save('probe.png')"
+          curl -sf -X POST --data-binary @probe.png -H 'content-type: image/png' localhost:8000/predict

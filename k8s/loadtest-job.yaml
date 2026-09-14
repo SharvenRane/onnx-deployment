@@ -1,0 +1,25 @@
+# Runs serve/loadtest.py inside the cluster against the Service, so requests go through
+# cluster DNS and kube-proxy load balancing exactly as another in cluster client would.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: loadtest
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loadtest
+          image: classifier:local
+          imagePullPolicy: Never
+          command: ["python", "/app/loadtest.py"]
+          args: ["load", "--url", "http://classifier/predict", "--images", "/data/images",
+                 "--concurrency", "16", "--duration", "60", "--out", "/data/results/load.json"]
+          resources:
+            requests: {cpu: "2", memory: 512Mi}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+      volumes:
+        - name: data
+          hostPath: {path: /data, type: Directory}

@@ -1,0 +1,9 @@
+{
+ "images": 42,
+ "accuracy": 0.8571428571428571,
+ "prediction_agreement_with_reference": 1.0,
+ "max_abs_logit_diff": 4.780292510986328e-05,
+ "pods": {
+  "classifier-89d9b5bc7-rkjh9": 42
+ }
+}

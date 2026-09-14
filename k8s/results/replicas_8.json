@@ -1,0 +1,64 @@
+{
+ "concurrency": 16,
+ "duration_s": 45.158152828000084,
+ "requests": 7881,
+ "ok": 7881,
+ "failed": 0,
+ "status_codes": {
+  "200": 7881
+ },
+ "throughput_rps": 174.51998158599227,
+ "latency": {
+  "p50_ms": 75.36436999998841,
+  "p95_ms": 206.4732430001186,
+  "p99_ms": 289.1788392000307,
+  "mean_ms": 91.39804332445229
+ },
+ "pods": {
+  "classifier-89d9b5bc7-rv4gn": 1008,
+  "classifier-89d9b5bc7-rkjh9": 937,
+  "classifier-89d9b5bc7-957fb": 1001,
+  "classifier-89d9b5bc7-z9d5b": 982,
+  "classifier-89d9b5bc7-5jxhw": 1004,
+  "classifier-89d9b5bc7-5m4wf": 965,
+  "classifier-89d9b5bc7-9d58v": 1011,
+  "classifier-89d9b5bc7-wkz72": 973
+ },
+ "per_10s": [
+  {
+   "t": 0,
+   "ok": 1726,
+   "failed": 0,
+   "rps": 172.6,
+   "p95_ms": 204.38
+  },
+  {
+   "t": 10,
+   "ok": 1750,
+   "failed": 0,
+   "rps": 175.0,
+   "p95_ms": 198.43849999999998
+  },
+  {
+   "t": 20,
+   "ok": 1752,
+   "failed": 0,
+   "rps": 175.2,
+   "p95_ms": 209.65849999999975
+  },
+  {
+   "t": 30,
+   "ok": 1742,
+   "failed": 0,
+   "rps": 174.2,
+   "p95_ms": 213.74699999999962
+  },
+  {
+   "t": 40,
+   "ok": 911,
+   "failed": 0,
+   "rps": 91.1,
+   "p95_ms": 198.8
+  }
+ ]
+}
